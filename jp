@@ -1,0 +1,13 @@
+#!/bin/sh
+temp=$(mktemp)
+cat > "$temp"
+echo $(grep "${1#.}" "$temp") > "$temp"
+sed 's/[[:space:]]//g' -i "$temp"
+IFS=':' read var val < "$temp"
+case "$val" in
+	'}'|'{')
+		cat $temp;;
+	*)
+		echo "$val";;
+esac
+rm "$temp"
