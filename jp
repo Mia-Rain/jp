@@ -1,13 +1,17 @@
 #!/bin/sh
-temp=$(mktemp)
-cat > "$temp"
-echo $(grep "${1#.}" "$temp") > "$temp"
-sed 's/[[:space:]]//g' -i "$temp"
-IFS=':' read var val < "$temp"
-case "$val" in
-	'}'|'{')
-		cat $temp;;
-	*)
-		echo "$val";;
-esac
+orgtemp="$(mktemp)"
+temp="$(mktemp)"
+cat > "$orgtemp" # jp is meant to read from a pipe
+grep "${1#.}" "$orgtemp" > "$temp"
+if ! grep -q "{" "$temp"; then
+	echo "$(grep "${1#.}" "$temp")" > "$temp"
+	sed 's/[[:space:]]//g' -i "$temp"
+	IFS=':' read -r var val < "$temp"
+	echo "$val"
+else
+	sed '/'"${1#.}"'/,$!d' "$orgtemp" > "$temp"
+	IFS='"' read -r end ex < "$temp"
+	sed '/^'"${end}"'\}/q' -i "$temp"
+	cat "$temp" && exit
+fi
 rm "$temp"
