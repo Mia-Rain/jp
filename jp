@@ -1,12 +1,4 @@
 #!/bin/sh
-orgtemp="$(mktemp)"
-temp="$(mktemp)"
-spatemp="$(mktemp)"
-# idtemp="$(mktemp)"
-cat > "$orgtemp" # jp is meant to read from a pipe
-grep '\s*"' -m 1 < "$orgtemp" > "$spatemp"
-IFS='"'; read -r spa ex < "$spatemp" # set space count
-grep "^${spa}"'"'"${1#.}"'"' "$orgtemp" > "$temp"
 head () {
 if ! grep -q "{" "$temp"; then
 	echo "$(grep "${1#.}" "$temp")" > "$temp"
@@ -64,12 +56,39 @@ else
 fi
 done
 }
-if ! [ $(echo ${1} | awk -F. '{print NF-1}') -gt 1 ]; then
-	head "$1"
-else
-	IFS="."; loop ${1#.}
-	cat "$temp"
-fi
+usage() {
+	cat << 'EOF'
+Jp ~ JsonPosix - POSIX sh json handler
+***
+usage:
+<some json outputting program> | ./jp "<element>"
+eg: spotbash get_info | ./jp ".is_playing"
+***
+~ By Mia
+  ~ Also charlotte is a good girl
+***
+EOF
+}
+case $1 in
+	-h)
+		usage && exit 1
+		;;
+	*)
+		orgtemp="$(mktemp)"
+		temp="$(mktemp)"
+		spatemp="$(mktemp)"
+		# idtemp="$(mktemp)"
+		cat > "$orgtemp" # jp is meant to read from a pipe
+		grep '\s*"' -m 1 < "$orgtemp" > "$spatemp"
+		IFS='"'; read -r spa ex < "$spatemp" # set space count
+		grep "^${spa}"'"'"${1#.}"'"' "$orgtemp" > "$temp"
+		if ! [ $(echo ${1} | awk -F. '{print NF-1}') -gt 1 ]; then
+			head "$1"
+		else
+			IFS="."; loop ${1#.}
+			cat "$temp"
+		fi;;
+esac
 rm "$temp" -rf
 rm "$orgtemp" -rf
 rm "$spatemp" -rf
