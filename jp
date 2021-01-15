@@ -50,16 +50,17 @@ else
 	IFS='"'; read -r end ex < "$temp"
 	if ! grep "^${end}"'"'"${i#.}"'" : \[ {' -q "$temp"; then
 		sed '/^'"${end}"'\}/q' -i "$temp"
+		sed 's/"'"${i#.}"'" : {/{/g' -i "$temp"
 	else
 		sed '/^'"${end}"'\} ]/q' -i "$temp"
-	fi
-	sed 's/"'"${i#.}"'" : {/{/g' -i "$temp"
-	if grep "^${end}"'"'"${i#.}"'" : \[ {' -q "$temp"; then
-		sed 's/^'"${end}"'\} ]\,/}/g' -i "$temp"
-	else
-		sed 's/^'"${end}"'\}\,/}/g' -i "$temp"
+		sed 's/"'"${i#.}"'" : \[ {/\[/g' -i "$temp"
 	fi
 	sed 's/^'"${end}"'//' -i "$temp"
+	if ! grep "^${end}"'"'"${i#.}"'" : \[ {' -q "$temp"; then
+		sed 's/^} ],/]/g' -i "$temp"
+	else
+		sed 's/^\}\,/}/g' -i "$temp"
+	fi
 fi
 done
 }
